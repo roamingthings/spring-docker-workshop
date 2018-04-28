@@ -1,0 +1,76 @@
+buildscript {
+	ext {
+		kotlinVersion = '1.2.40'
+		springBootVersion = '2.0.1.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		jcenter()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+		classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
+        classpath('com.bmuschko:gradle-docker-plugin:3.2.7')
+	}
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'kotlin-spring'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+
+group = 'de.roamingthings.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+compileKotlin {
+	kotlinOptions {
+		freeCompilerArgs = ["-Xjsr305=strict"]
+		jvmTarget = "1.8"
+	}
+}
+compileTestKotlin {
+	kotlinOptions {
+		freeCompilerArgs = ["-Xjsr305=strict"]
+		jvmTarget = "1.8"
+	}
+}
+
+repositories {
+	mavenCentral()
+    jcenter()
+}
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-actuator')
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('com.fasterxml.jackson.module:jackson-module-kotlin')
+	compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	compile("org.jetbrains.kotlin:kotlin-reflect")
+	runtime('org.springframework.boot:spring-boot-devtools')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+task buildAppImage(type: DockerBuildImage) {
+    dependsOn build
+    inputDir = projectDir
+    tag = 'spring-docker-demo:latest'
+    buildArgs = ['JAR_FILE' : 'build/libs/spring-docker-demo-0.0.1-SNAPSHOT.jar']
+}
+
+task createAppContainer(type: DockerCreateContainer) {
+    dependsOn buildAppImage
+    targetImageId { buildAppImage.getImageId() }
+    portBindings = ['8080:8080']
+    containerName 'spring-docker-demo'
+}
+
+task startContainer(type: DockerStartContainer, dependsOn: createAppContainer) {
+    targetContainerId { createAppContainer.getContainerId() }
+}
