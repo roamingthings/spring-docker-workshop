@@ -1,3 +1,9 @@
 = Spring Docker Workshop
 
 Dies Repository accompanies the Spring-Docker Workshop.
+
+Enthalten ist eine Spring Boot 2 Anwendung mit aktiviertem Actuator.
+
+Das Dockerfile `Dockerfile_healthcheck` wird der Health-Endpunkt mittels curl angesprochen, um den Zustand des Containers zu prüfen.
+
+Die Präsentationsfolien sind in der Datei `presentation_de.md`.
