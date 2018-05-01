@@ -1,18 +1,18 @@
 buildscript {
-	ext {
-		kotlinVersion = '1.2.40'
-		springBootVersion = '2.0.1.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-		jcenter()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-		classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-		classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
+    ext {
+        kotlinVersion = '1.2.40'
+        springBootVersion = '2.0.1.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath('com.bmuschko:gradle-docker-plugin:3.2.7')
-	}
+    }
 }
 
 apply plugin: 'kotlin'
@@ -30,45 +30,46 @@ group = 'de.roamingthings.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 compileKotlin {
-	kotlinOptions {
-		freeCompilerArgs = ["-Xjsr305=strict"]
-		jvmTarget = "1.8"
-	}
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305=strict"]
+        jvmTarget = "1.8"
+    }
 }
 compileTestKotlin {
-	kotlinOptions {
-		freeCompilerArgs = ["-Xjsr305=strict"]
-		jvmTarget = "1.8"
-	}
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305=strict"]
+        jvmTarget = "1.8"
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
     jcenter()
 }
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('org.springframework.boot:spring-boot-starter-web')
-	compile('com.fasterxml.jackson.module:jackson-module-kotlin')
-	compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	compile("org.jetbrains.kotlin:kotlin-reflect")
-	runtime('org.springframework.boot:spring-boot-devtools')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+    compile('org.springframework.boot:spring-boot-starter-actuator')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('com.fasterxml.jackson.module:jackson-module-kotlin')
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    compile("org.jetbrains.kotlin:kotlin-reflect")
+    runtime('org.springframework.boot:spring-boot-devtools')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
 task buildAppImage(type: DockerBuildImage) {
     dependsOn build
     inputDir = projectDir
-    tag = 'spring-docker-demo:latest'
-    buildArgs = ['JAR_FILE' : 'build/libs/spring-docker-demo-0.0.1-SNAPSHOT.jar']
+    dockerFile = new File(projectDir, 'Dockerfile_healthcheck')
+    tag = 'spring-docker-workshop:latest'
+    buildArgs = ['JAR_FILE': 'build/libs/spring-docker-workshop-0.0.1-SNAPSHOT.jar']
 }
 
 task createAppContainer(type: DockerCreateContainer) {
     dependsOn buildAppImage
     targetImageId { buildAppImage.getImageId() }
     portBindings = ['8080:8080']
-    containerName 'spring-docker-demo'
+    containerName 'spring-docker-workshop'
 }
 
 task startContainer(type: DockerStartContainer, dependsOn: createAppContainer) {
