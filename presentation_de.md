@@ -6,7 +6,7 @@ autoscale: true
 
 # Worum geht's?
 
-Wir packen eine einfache Spring Boot Anwendung in einen Container und haben dabei Spass 🤓
+## Wir packen eine einfache Spring Boot Anwendung in einen Container und haben dabei Spass 🤓
 
 ---
 
@@ -22,20 +22,19 @@ Wir packen eine einfache Spring Boot Anwendung in einen Container und haben dabe
 
 # Bevor wir loslegen...
 
-🧐 Hat jeder Docker installiert?
+## 🧐 Hat jeder Docker installiert?
 
-
-[https://www.docker.com/community-edition](https://www.docker.com/community-edition)
+### [https://www.docker.com/community-edition](https://www.docker.com/community-edition)
 
 
 ---
 
-# Docker vs. Virtual Machine
+# Virtual Machine vs. Docker
 
 Virtual Machine | Docker
 ---|---
-Mehrere Prozesse | Ein Prozess pro Container
 Vollständiges OS | Nur so viel OS wie notwendig
+Mehrere Prozesse | Ein isolierter Prozess pro Container
 Umfangreiche Resourcen | Leichtgewichtig
 Boot-Zeit | Schnell gestartet (und gestoppt)
 
@@ -55,16 +54,16 @@ Boot-Zeit | Schnell gestartet (und gestoppt)
 
 # Die Architektur von Docker
 
-* Client `docker`
-* Docker Host `dockerd`
-* Mac und Windows: Eine virtuelle Maschinem
+* Docker Host: **`dockerd`**
+  * Mac und Windows: Eine virtuelle Maschine
+* Client: **`docker`**
 * Registry
 
 ---
 
 Images | Containers
 ---|---
-Read-only<br/>Vorlage<br/>Baut auf anderen Images auf<br/>Selbst erstellen oder Fertige benutzen | Ausführbare Instanz eines Images<br/>Verwalten über Docker Kommando<br/>Ausführung durch den Docker Daemon<br/>Isoliert vom Host-System<br/>Zustandsbehaftet
+Read-only<br/><br/>Vorlage<br/><br/>Baut auf anderen Images auf<br/><br/>Selbst erstellen oder Fertige benutzen | Ausführbare Instanz eines Images<br/><br/>Verwalten über Docker Kommando<br/><br/>Ausführung durch den Docker Daemon<br/><br/>Isoliert vom Host-System<br/><br/>Zustandsbehaftet
 
 ---
 
@@ -74,19 +73,31 @@ Read-only<br/>Vorlage<br/>Baut auf anderen Images auf<br/>Selbst erstellen oder 
 
 # Hello-World mit Docker
 
-`docker container run hello-world`
+`$ docker container run hello-world`
 
----
+```
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
 
-# Wir starten einen Webserver
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
 
-`docker container run -d -p 80:80 nginx`
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+...
+```
 
 ---
 
 # Mal schnell eine Shell unter Ubuntu starten
 
-`docker run --rm -it ubuntu /bin/bash`
+`$ docker container run --rm -it ubuntu /bin/bash`
 
 1. Ubuntu Image von `hub.docker.com` laden
 1. Container erzeugen
@@ -94,8 +105,25 @@ Read-only<br/>Vorlage<br/>Baut auf anderen Images auf<br/>Selbst erstellen oder 
 1. Netzwerk-Interface erzeugen
 1. Container (im Vordergrund) starten
 1. `/bin/bash` ausführen
-1. Terminal verbinden
-1. Nach dem Verlassen: Container stoppen und löschen
+1. Terminal verbinden (`-it`)
+1. Nach dem Verlassen: Container stoppen und löschen (`--rm`)
+
+---
+
+# Wir starten einen Webserver
+
+`$ docker container run -d -p 80:80 nginx`
+
+* Ausführen im Hintergrund (`-d`)
+* Port `80` mit dem Host verbinden (`-p 80:80`)
+
+`$ docker ps`
+
+* Anzeigen der laufenden Container
+
+`$ docker container stop <containerId>`
+
+* Container stoppen
 
 ---
 
@@ -118,14 +146,14 @@ CMD ["/hello"]
 
 ---
 
-1) Wir bauen eine Spring Boot Anwendung
+1) Wir initialisieren eine Spring Boot Anwendung
 
 ```
 curl https://start.spring.io/starter.tgz \
   -d dependencies=web,actuator,devtools \
   -d language=kotlin \
   -d type=gradle-project \
-  -d baseDir=docker-workshop \
+  -d baseDir=spring-docker-workshop \
   -d groupId=de.roamingthings.example \
   -d artifactId=docker-workshop \
   -d name=docker-workshop \
@@ -134,7 +162,16 @@ curl https://start.spring.io/starter.tgz \
 
 ---
 
-2) Wir erstellen ein Dockerfile
+2) Wir bauen die Anwendung
+
+```
+$ cd spring-docker-workshop
+$ ./gradlew build
+```
+
+---
+
+3) Wir erstellen ein Dockerfile
 
 ```
 FROM openjdk:8-jdk-alpine
@@ -146,25 +183,25 @@ ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
 
 ---
 
-3) Wir erstellen das Image
+4) Wir erstellen das Image
 
 ```
-docker image build --build-arg JAR_FILE=build/libs/docker-workshop-0.0.1-SNAPSHOT.jar -t spring-docker-workshop .
+docker image build --build-arg JAR_FILE=build/libs/spring-docker-workshop-0.0.1-SNAPSHOT.jar -t spring-docker-workshop .
 ```
 
-4) Wir erzeugen und starten einen Container
+5) Wir erzeugen und starten einen Container
 
 ```
-docker container run --rm -p 8080:8080 --name spring-docker-workshop spring-docker-workshop
+docker container run --rm -d -p 8080:8080 --name spring-docker-workshop spring-docker-workshop
 ```
 
-5) Wir öffnen eine Shell im Container
+6) Wir öffnen eine Shell im Container
 
 ```
 docker container exec -it spring-docker-workshop /bin/bash
 ```
 
-6) Container anhalten
+7) Container anhalten
 
 ```
 docker container stop workshop
@@ -175,7 +212,12 @@ docker container stop workshop
 # Und nun mit Gradle
 
 Projekt zum Auschecken:
-`https://github.com/roamingthings/spring-docker-workshop`
+
+```
+$ git clone \
+https://github.com/roamingthings/spring-docker-workshop
+$ cd spring-docker-workshop
+```
 
 Projekt bauen und Container starten:
 
