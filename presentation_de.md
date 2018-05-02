@@ -26,6 +26,7 @@ autoscale: true
 
 ### [https://www.docker.com/community-edition](https://www.docker.com/community-edition)
 
+### [https://bit.ly/dws201805]
 
 ---
 
