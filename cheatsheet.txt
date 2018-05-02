@@ -1,0 +1,61 @@
+# Installation von Docker
+https://www.docker.com/community-edition](https://www.docker.com/community-edition
+
+# Hello World Container
+docker container run hello-world
+
+# Ubuntu Container
+docker container run --rm -it ubuntu /bin/bash
+
+# Ngnix Container
+docker container run -d -p 80:80 nginx
+
+# Spring Boot Projekt initialisieren
+curl https://start.spring.io/starter.tgz \
+  -d dependencies=web,actuator,devtools \
+  -d language=kotlin \
+  -d type=gradle-project \
+  -d baseDir=spring-docker-workshop \
+  -d groupId=de.roamingthings.example \
+  -d artifactId=docker-workshop \
+  -d name=docker-workshop \
+  | tar -xzvf -
+
+# Projekt bauen
+cd spring-docker-workshop
+./gradlew build
+
+# Dockerfile für das Spring-Projekt
+FROM openjdk:8-jdk-alpine
+VOLUME /tmp
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+
+# Image erstellen
+docker image build --build-arg JAR_FILE=build/libs/spring-docker-workshop-0.0.1-SNAPSHOT.jar -t spring-docker-workshop .
+
+# Container erstellen und starten
+docker container run --rm -d -p 8080:8080 --name spring-docker-workshop spring-docker-workshop
+
+# Shell im Container öffnen
+docker container exec -it spring-docker-workshop /bin/bash
+
+# Container beenden
+docker container stop workshop
+
+# Projekt auschecken
+git clone https://github.com/roamingthings/spring-docker-workshop
+cd spring-docker-workshop
+
+# Projekt starten
+./gradlew startContainer
+
+# Health Endpunkt abrufen
+curl http://localhost:8080/actuator/health
+
+# Laufende Container anzeigen
+docker ps
+
+# Log des Containers anzeigen
+docker container logs -f spring-docker-workshop
